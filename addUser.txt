@@ -1,0 +1,64 @@
+---cách thêm 1 superuser 
+python manage.py createsuperuser
+
+Username (leave blank to use 'admin'): admin
+Email address: admin@example.com
+Password: ********
+Password (again): ********
+Superuser created successfully.
+
+
+----Cách thêm 1 user
+python manage.py shell
+
+from django.contrib.auth.models import User
+user = User.objects.create_user(
+    username='tên_người_dùng',
+    email='email@example.com',
+    password='mật_khẩu'
+)
+user.is_staff = True
+user.save()
+
+----thêm quyền để xem trong Course
+>>> from django.contrib.auth.models import User, Permission
+>>> from django.contrib.contenttypes.models import ContentType
+>>> from courses.models import Course 
+>>> ContentType.objects.get_for_model(Course)
+>>> Permission.objects.get(codename='view_Course', content_type=content_type)
+>>> user.user_permissions.add(permission)
+
+
+
+
+----thêm dữ liệu  \\ python manage.py shell
+
+ >>> from courses.models import *
+ >>> c = Category(name="Công nghệ Thông tin")
+ >>> c.save()
+ >>> co = Course(subject="Lập trình Python", category=c)
+ >>> co.save()
+ >>> co.subject = "Các công nghệ lập trình hiện đại"
+ >>> co.save()
+ >>> Course.objects.all()
+ <QuerySet [<Course: Các công nghệ lập trình hiện đại>]>
+ >>> Course.objects.filter(subject__contains="hiện đại")
+ <QuerySet [<Course: Các công nghệ lập trình hiện đại>]>
+ >>> Course.objects.get(pk=1)
+ <Course: Các công nghệ lập trình hiện đại>
+
+
+
+
+# Khi truy vấn muốn xem câu truy vấn SQL được tạo ra sử dụng đối tượng query như sau
+
+>>> q = Course.objects.filter(subject__icontains='các')
+>>> print(q.query)
+SELECT `courses_course`.`id`, 
+`courses_course`.`subject`, 
+`courses_course`.`description`, 
+`courses_course`.`created_date`, 
+`courses_course`.`updated_date`, 
+`courses_course`.`category_id`, 
+`courses_course`.`active` FROM `courses_course` WHERE 
+`courses_course`.`subject` LIKE %các%
