@@ -31,7 +31,7 @@
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'coursedb',
         'USER': 'root',
-        'PASSWORD': '12345678',
+        'PASSWORD': 'Abc123@',
         'HOST': '' # mặc định localhost
         }
     }
@@ -128,6 +128,8 @@
 
 \\Viết lệnh
 #   pip install mysqlclient // phải mở MySQL và đăng nhập vô trước
+
+#   Tạo database coursedb
 
 #   python manage.py makemigrations courses
 
