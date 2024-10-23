@@ -42,50 +42,89 @@
 
 
 # vô models.py viết code
+    from django.contrib.auth.models import AbstractUser
+    from ckeditor.fields import RichTextField
     from django.db import models
-    class Category(models.Model):
-        name = models.CharField(max_length=100, unique=True)
 
-        def __str__(self):
-            return self.name
-    
-    class Course(models.Model):
-        subject = models.CharField(max_length=100, unique=True)
-        description = models.CharField(max_length=255)
-        created_date = models.DateTimeField(auto_now_add=True)
-        updated_date = models.DateTimeField(auto_now=True)
-        category = models.ForeignKey(Category,  on_delete=models.CASCADE)
-        active = models.BooleanField(default=True)
-
-            class Meta:
-                unique_together = ('subject', 'category')
-
-            def __str__(self):
-                return self.subject
-
+    class User(AbstractUser):
+        pass
 
     class ModelBase(models.Model):
-        created_date = models.DateTimeField(auto_now_add=True)
-        updated_date = models.DateTimeField(auto_now=True)
+        created_date = models.DateTimeField(auto_now_add=True, null=True)
+        updated_date = models.DateTimeField(auto_now=True, null=True)
         active = models.BooleanField(default=True)
-        image = models.ImageField(upload_to='courses/%Y/%m/', null=True)
+        image = models.ImageField(upload_to='courses/%Y/%m/')
 
         class Meta:
             abstract = True
             ordering = ['-id'] # sắp giảm theo id
+   
+    class Category(models.Model):
+        name = models.CharField(max_length=100, unique=True)
+        def __str__(self):
+            return self.name
 
+    class Course(ModelBase):
+        subject = models.CharField(max_length=100, unique=True)
+        description = models.TextField(max_length=255)
+
+        category = models.ForeignKey(Category,  on_delete=models.CASCADE)
+        active = models.BooleanField(default=True)
+
+        class Meta:
+            unique_together = ('subject', 'category')
+
+        def __str__(self):
+            return self.subject
+
+
+    class Lesson(ModelBase):
+        subject = models.CharField(max_length=255)
+        content = models.TextField()
+        course = models.ForeignKey (
+            Course, on_delete=models.CASCADE ,
+            related_name='lessons',
+            related_query_name='my_lession'
+        )
+
+        class Meta:
+            unique_together = ('subject', 'course')
+        def __str__(self):
+            return self.subject
+    
 
 # vô admin.py
     from django.contrib import admin
-    from .models import models,Category,Course
+    from .models import models,Category,Course,Lesson
+    from django.utils.html import mark_safe
+    from django import forms
+    from ckeditor_uploader.widgets import CKEditorUploadingWidget
 
     # Register your models here.
+    class LessonAdmin(admin.ModelAdmin):
+        list_display = ['id', 'subject', 'active', 'created_date','avatar', ]
+        search_fields = ['subject', 'content']
+        list_filter = ['id', 'subject', 'created_date']
+        list_editable = ['subject']
+        readonly_fields = ['avatar']
+
+        def avatar(self, lesson):
+            return mark_safe(f"<img src='/static/{lesson.image.name}' width='200' />")
+
+    class CourseAdmin(admin.ModelAdmin):
+        list_display = ('id','image_tag', 'subject', 'active', 'created_date',)
+        readonly_fields = ('image_tag',)
+
+        def image_tag(self, obj):
+            if obj.image:
+                return mark_safe(f'<img src="/static/{obj.image.name}" width="150" height="150" />')
+            return "No Image"
+
+    admin.site.register(Course, CourseAdmin)
 
     admin.site.register(Category)
-    admin.site.register(Course)
 
-
-
+    admin.site.register(Lesson, LessonAdmin)
 
 \\Viết lệnh
 #   pip install mysqlclient // phải mở MySQL và đăng nhập vô trước
@@ -95,6 +134,8 @@
 #   python manage.py sqlmigrate courses 0001
 
 #   python manage.py migrate
+
+#   python manage.py runserver
 
 muốn thêm sửa j trong database thì đọc file addUser.txt
 
